@@ -1,5 +1,5 @@
 node_modules/
-database.sqlite
+data/
 uploads/
 .env
 certbot/
