@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Новости — FIFUSA • UEFS</title>
+  <meta name="description" content="Новости Международной Федерации Футзала и Микрофутзала FIFUSA и UEFS.">
+  <link rel="icon" type="image/png" href="/images/fifusa_logo.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="/" class="navbar-brand">FIFUSA <span class="dot">•</span> UEFS</a>
+  <div id="navMenu">
+    <a href="/" class="nav-link" data-i18n="nav.home">ГЛАВНАЯ</a>
+    <a href="/about.html" class="nav-link" data-i18n="nav.about">О НАС</a>
+    <a href="/documents.html" class="nav-link" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+    <a href="/news.html" class="nav-link active" data-i18n="nav.news">НОВОСТИ</a>
+    <a href="/media.html" class="nav-link" data-i18n="nav.media">МЕДИА</a>
+    <a href="/partners.html" class="nav-link" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+    <a href="/contact.html" class="nav-link" data-i18n="nav.contact">КОНТАКТ</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+    </div>
+  </div>
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page-header">
+  <div class="section-label">// FIFUSA • UEFS</div>
+  <h1 data-i18n="news.page_title">НОВОСТИ</h1>
+  <p class="page-header-note" data-i18n="news.page_note">Новости федерации. Посты публикуются через админ-панель.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div id="newsGrid" class="grid-3">
+    <div class="spinner-wrap" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+  <div class="pagination" id="newsPagination"></div>
+</div>
+
+<footer>
+  <div class="footer-banner">
+    <img src="/images/adverisement_banner_in_footer.png" alt="Banner">
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 FIFUSA • UEFS</span>
+    <div class="footer-links">
+      <a href="/about.html" data-i18n="nav.about">О НАС</a>
+      <a href="/documents.html" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+      <a href="/partners.html" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+      <a href="/news.html" data-i18n="nav.news">НОВОСТИ</a>
+      <a href="/media.html" data-i18n="nav.media">МЕДИА</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  const LIMIT = 9;
+  let currentPage = 1;
+  let totalPages = 1;
+
+  async function loadNews(page = 1) {
+    const grid = document.getElementById('newsGrid');
+    grid.innerHTML = '<div class="spinner-wrap" style="grid-column:1/-1"><div class="spinner"></div></div>';
+    try {
+      const data = await FIFUSA.apiFetch(`/api/news?page=${page}&limit=${LIMIT}`);
+      const lang = FIFUSA.getCurrentLang();
+      totalPages = data.totalPages || 1;
+      currentPage = page;
+
+      if (!data.items || data.items.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">📰</div>
+          <p data-i18n="news.empty">Новостей пока нет</p>
+        </div>`;
+        renderPagination();
+        return;
+      }
+
+      grid.innerHTML = data.items.map(n => `
+        <a href="/article.html?slug=${n.slug}" class="card reveal">
+          ${n.preview_image
+            ? `<img src="${n.preview_image}" alt="${n['title_'+lang]||n.title_ru}" class="card-img">`
+            : `<div class="card-img-placeholder">фото · из админ-панели</div>`}
+          <div class="card-body">
+            <div class="card-meta">${FIFUSA.formatDate(n.published_at)}</div>
+            <div class="card-title">${n['title_'+lang]||n.title_ru||'Новость'}</div>
+          </div>
+        </a>
+      `).join('');
+
+      FIFUSA.observeNewRevealElements();
+      renderPagination();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch(e) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Не удалось загрузить новости</p></div>`;
+    }
+  }
+
+  function renderPagination() {
+    const pg = document.getElementById('newsPagination');
+    if (totalPages <= 1) { pg.innerHTML = ''; return; }
+    let html = '';
+    if (currentPage > 1) html += `<button class="page-btn" onclick="loadNews(${currentPage-1})">←</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button class="page-btn${i===currentPage?' active':''}" onclick="loadNews(${i})">${i}</button>`;
+    }
+    if (currentPage < totalPages) html += `<button class="page-btn" onclick="loadNews(${currentPage+1})">→</button>`;
+    pg.innerHTML = html;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => loadNews(1));
+  document.addEventListener('fifusa:langchange', () => loadNews(currentPage));
+</script>
+</body>
+</html>

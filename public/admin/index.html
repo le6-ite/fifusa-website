@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — FIFUSA • UEFS</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="icon" type="image/png" href="/images/fifusa_logo.png">
+</head>
+<body class="admin-body">
+
+<!-- SIDEBAR -->
+<aside class="admin-sidebar" id="sidebar">
+  <div class="admin-sidebar-header">
+    <div style="display:flex;gap:0.75rem;align-items:center;">
+      <img src="/images/uefs_logo.png" alt="UEFS">
+      <img src="/images/fifusa_logo.png" alt="FIFUSA">
+    </div>
+    <h2>ADMIN PANEL</h2>
+    <p>FIFUSA • UEFS</p>
+  </div>
+
+  <nav class="admin-nav">
+    <div class="admin-nav-section">Обзор</div>
+    <button class="admin-nav-item active" data-section="dashboard" onclick="showSection('dashboard')">
+      <span class="admin-nav-icon">📊</span> Дашборд
+    </button>
+
+    <div class="admin-nav-section">Контент</div>
+    <button class="admin-nav-item" data-section="news" onclick="showSection('news')">
+      <span class="admin-nav-icon">📰</span> Новости
+    </button>
+    <button class="admin-nav-item" data-section="media" onclick="showSection('media')">
+      <span class="admin-nav-icon">🎬</span> Медиа
+    </button>
+    <button class="admin-nav-item" data-section="documents" onclick="showSection('documents')">
+      <span class="admin-nav-icon">📄</span> Документы
+    </button>
+    <button class="admin-nav-item" data-section="partners" onclick="showSection('partners')">
+      <span class="admin-nav-icon">🤝</span> Партнёры
+    </button>
+    <button class="admin-nav-item" data-section="messages" onclick="showSection('messages')">
+      <span class="admin-nav-icon">✉️</span> Сообщения <span id="msgBadge" style="display:none;background:var(--color-error);color:#fff;border-radius:99px;font-size:0.7rem;padding:1px 7px;margin-left:auto;"></span>
+    </button>
+  </nav>
+
+  <div class="admin-sidebar-footer">
+    <button class="admin-nav-item" onclick="logout()" style="color:var(--color-error);">
+      <span class="admin-nav-icon">🚪</span> Выйти
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="admin-main">
+  <!-- HEADER -->
+  <header class="admin-header">
+    <h1 id="sectionTitle">Дашборд</h1>
+    <div class="admin-header-actions">
+      <a href="/" target="_blank" class="btn btn-ghost" style="font-size:0.85rem;padding:0.5rem 1rem;">🌐 Сайт</a>
+      <div class="admin-user-badge">
+        <span>👤</span>
+        <span id="adminUsername">admin</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="admin-content">
+
+    <!-- ── DASHBOARD ────────────────────────────────────────── -->
+    <div id="section-dashboard">
+      <div class="admin-stats" id="dashStats">
+        <div class="admin-stat">
+          <div class="admin-stat-num" id="statNews">—</div>
+          <div class="admin-stat-label">Новостей</div>
+          <div class="admin-stat-icon">📰</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-num" id="statMedia">—</div>
+          <div class="admin-stat-label">Медиа</div>
+          <div class="admin-stat-icon">🎬</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-num" id="statDocs">—</div>
+          <div class="admin-stat-label">Документов</div>
+          <div class="admin-stat-icon">📄</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-num" id="statMsgs">—</div>
+          <div class="admin-stat-label">Сообщений</div>
+          <div class="admin-stat-icon">✉️</div>
+        </div>
+      </div>
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <span class="admin-panel-title">Добро пожаловать в панель управления FIFUSA</span>
+        </div>
+        <div class="admin-panel-body">
+          <p style="color:var(--color-text-muted);">Выберите раздел в меню слева для управления контентом сайта.</p>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:1.5rem;">
+            <div style="padding:1rem;background:var(--color-bg-3);border-radius:8px;border:1px solid var(--color-border-soft);">
+              <div style="font-weight:600;margin-bottom:0.5rem;">📰 Новости</div>
+              <p style="font-size:0.85rem;">Создавайте и редактируйте новости на 3 языках с фотографиями</p>
+            </div>
+            <div style="padding:1rem;background:var(--color-bg-3);border-radius:8px;border:1px solid var(--color-border-soft);">
+              <div style="font-weight:600;margin-bottom:0.5rem;">🎬 Медиа</div>
+              <p style="font-size:0.85rem;">Добавляйте фотогалереи и YouTube/Vimeo видео</p>
+            </div>
+            <div style="padding:1rem;background:var(--color-bg-3);border-radius:8px;border:1px solid var(--color-border-soft);">
+              <div style="font-weight:600;margin-bottom:0.5rem;">📄 Документы</div>
+              <p style="font-size:0.85rem;">Загружайте PDF-файлы (регламенты, правила)</p>
+            </div>
+            <div style="padding:1rem;background:var(--color-bg-3);border-radius:8px;border:1px solid var(--color-border-soft);">
+              <div style="font-weight:600;margin-bottom:0.5rem;">🤝 Партнёры</div>
+              <p style="font-size:0.85rem;">Управляйте логотипами и ссылками партнёров</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NEWS ────────────────────────────────────────────── -->
+    <div id="section-news" style="display:none;">
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <span class="admin-panel-title">Новости</span>
+          <button class="btn btn-primary" onclick="openModal('newsModal')" style="font-size:0.9rem;padding:0.5rem 1.5rem;">+ Добавить</button>
+        </div>
+        <div class="admin-panel-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Заголовок (RU)</th>
+                <th>Опубликован</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="newsTableBody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Загрузка...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MEDIA ───────────────────────────────────────────── -->
+    <div id="section-media" style="display:none;">
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <span class="admin-panel-title">Медиа</span>
+          <button class="btn btn-primary" onclick="openModal('mediaModal')" style="font-size:0.9rem;padding:0.5rem 1.5rem;">+ Добавить</button>
+        </div>
+        <div class="admin-panel-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Название (RU)</th>
+                <th>Тип</th>
+                <th>Дата события</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="mediaTableBody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Загрузка...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DOCUMENTS ───────────────────────────────────────── -->
+    <div id="section-documents" style="display:none;">
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <span class="admin-panel-title">Документы</span>
+          <button class="btn btn-primary" onclick="openModal('docModal')" style="font-size:0.9rem;padding:0.5rem 1.5rem;">+ Загрузить PDF</button>
+        </div>
+        <div class="admin-panel-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Название (RU)</th>
+                <th>Категория</th>
+                <th>Дата</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="docsTableBody"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Загрузка...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PARTNERS ────────────────────────────────────────── -->
+    <div id="section-partners" style="display:none;">
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <span class="admin-panel-title">Партнёры</span>
+          <button class="btn btn-primary" onclick="openModal('partnerModal')" style="font-size:0.9rem;padding:0.5rem 1.5rem;">+ Добавить</button>
+        </div>
+        <div class="admin-panel-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Логотип</th>
+                <th>Название</th>
+                <th>Сайт</th>
+                <th>Порядок</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="partnersTableBody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Загрузка...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MESSAGES ────────────────────────────────────────── -->
+    <div id="section-messages" style="display:none;">
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <span class="admin-panel-title">Сообщения с сайта</span>
+        </div>
+        <div class="admin-panel-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Имя</th>
+                <th>Email</th>
+                <th>Сообщение</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="msgsTableBody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Загрузка...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── MODAL: NEWS ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="newsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="newsModalTitle">Добавить новость</span>
+      <button class="modal-close" onclick="closeModal('newsModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="newsId">
+      <div class="lang-tabs">
+        <button class="lang-tab-btn active" onclick="switchLangTab(this,'news','ru')">RU</button>
+        <button class="lang-tab-btn" onclick="switchLangTab(this,'news','en')">EN</button>
+        <button class="lang-tab-btn" onclick="switchLangTab(this,'news','es')">ES</button>
+      </div>
+      <div id="news-lang-ru" class="lang-panel active">
+        <div class="form-group">
+          <label class="form-label">Заголовок (RU) *</label>
+          <input type="text" id="newsTitleRu" class="form-control" placeholder="Заголовок на русском" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Текст новости (RU)</label>
+          <textarea id="newsBodyRu" class="form-control" rows="8" placeholder="Текст на русском..."></textarea>
+        </div>
+      </div>
+      <div id="news-lang-en" class="lang-panel">
+        <div class="form-group">
+          <label class="form-label">Title (EN)</label>
+          <input type="text" id="newsTitleEn" class="form-control" placeholder="Title in English">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Body (EN)</label>
+          <textarea id="newsBodyEn" class="form-control" rows="8" placeholder="Text in English..."></textarea>
+        </div>
+      </div>
+      <div id="news-lang-es" class="lang-panel">
+        <div class="form-group">
+          <label class="form-label">Título (ES)</label>
+          <input type="text" id="newsTitleEs" class="form-control" placeholder="Título en español">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cuerpo (ES)</label>
+          <textarea id="newsBodyEs" class="form-control" rows="8" placeholder="Texto en español..."></textarea>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Обложка (изображение)</label>
+        <div class="upload-area" id="newsUploadArea" onclick="document.getElementById('newsImageInput').click()">
+          <div class="upload-area-icon">🖼️</div>
+          <p>Нажмите или перетащите изображение</p>
+          <small>JPG, PNG, WebP — макс. 20MB</small>
+          <div class="upload-preview" id="newsPreview" style="display:none;"></div>
+        </div>
+        <input type="file" id="newsImageInput" accept="image/*" style="display:none;" onchange="previewImage(this,'newsPreview','newsUploadArea')">
+      </div>
+      <div class="form-group">
+        <div class="toggle-wrap">
+          <label class="toggle">
+            <input type="checkbox" id="newsPublished" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="form-label" style="margin:0;">Опубликовать сразу</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newsModal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveNews()" id="newsSaveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: MEDIA ────────────────────────────────────────── -->
+<div class="modal-overlay" id="mediaModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Добавить медиа</span>
+      <button class="modal-close" onclick="closeModal('mediaModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mediaId">
+      <div class="lang-tabs">
+        <button class="lang-tab-btn active" onclick="switchLangTab(this,'media','ru')">RU</button>
+        <button class="lang-tab-btn" onclick="switchLangTab(this,'media','en')">EN</button>
+        <button class="lang-tab-btn" onclick="switchLangTab(this,'media','es')">ES</button>
+      </div>
+      <div id="media-lang-ru" class="lang-panel active">
+        <div class="form-group">
+          <label class="form-label">Название (RU)</label>
+          <input type="text" id="mediaTitleRu" class="form-control" placeholder="Название события">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Описание (RU)</label>
+          <textarea id="mediaDescRu" class="form-control" rows="4"></textarea>
+        </div>
+      </div>
+      <div id="media-lang-en" class="lang-panel">
+        <div class="form-group">
+          <label class="form-label">Title (EN)</label>
+          <input type="text" id="mediaTitleEn" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description (EN)</label>
+          <textarea id="mediaDescEn" class="form-control" rows="4"></textarea>
+        </div>
+      </div>
+      <div id="media-lang-es" class="lang-panel">
+        <div class="form-group">
+          <label class="form-label">Título (ES)</label>
+          <input type="text" id="mediaTitleEs" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción (ES)</label>
+          <textarea id="mediaDescEs" class="form-control" rows="4"></textarea>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Тип</label>
+        <select id="mediaType" class="form-control" onchange="toggleMediaType()">
+          <option value="photo">📷 Фото</option>
+          <option value="video">🎥 Видео (YouTube/Vimeo)</option>
+        </select>
+      </div>
+      <div id="mediaPhotoUpload">
+        <div class="form-group">
+          <label class="form-label">Обложка / Фото</label>
+          <div class="upload-area" onclick="document.getElementById('mediaCoverInput').click()">
+            <div class="upload-area-icon">🖼️</div>
+            <p>Нажмите или перетащите изображение</p>
+            <div class="upload-preview" id="mediaPreview" style="display:none;"></div>
+          </div>
+          <input type="file" id="mediaCoverInput" accept="image/*" style="display:none;" onchange="previewImage(this,'mediaPreview')">
+        </div>
+      </div>
+      <div id="mediaVideoUrl" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Ссылка на YouTube / Vimeo</label>
+          <input type="url" id="mediaEmbedUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
+          <div class="field-hint">Поддерживаются полные ссылки YouTube и Vimeo</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Обложка (thumbnail)</label>
+          <div class="upload-area" onclick="document.getElementById('mediaCoverVideoInput').click()">
+            <div class="upload-area-icon">🖼️</div>
+            <p>Превью-изображение для карточки</p>
+            <div class="upload-preview" id="mediaVideoPreview" style="display:none;"></div>
+          </div>
+          <input type="file" id="mediaCoverVideoInput" accept="image/*" style="display:none;" onchange="previewImage(this,'mediaVideoPreview')">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Дата события</label>
+        <input type="date" id="mediaEventDate" class="form-control">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('mediaModal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveMedia()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: DOCUMENT ─────────────────────────────────────── -->
+<div class="modal-overlay" id="docModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Загрузить документ</span>
+      <button class="modal-close" onclick="closeModal('docModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="lang-tabs">
+        <button class="lang-tab-btn active" onclick="switchLangTab(this,'doc','ru')">RU</button>
+        <button class="lang-tab-btn" onclick="switchLangTab(this,'doc','en')">EN</button>
+        <button class="lang-tab-btn" onclick="switchLangTab(this,'doc','es')">ES</button>
+      </div>
+      <div id="doc-lang-ru" class="lang-panel active">
+        <div class="form-group">
+          <label class="form-label">Название (RU)</label>
+          <input type="text" id="docTitleRu" class="form-control" placeholder="Регламент соревнований 2024">
+        </div>
+      </div>
+      <div id="doc-lang-en" class="lang-panel">
+        <div class="form-group">
+          <label class="form-label">Title (EN)</label>
+          <input type="text" id="docTitleEn" class="form-control">
+        </div>
+      </div>
+      <div id="doc-lang-es" class="lang-panel">
+        <div class="form-group">
+          <label class="form-label">Título (ES)</label>
+          <input type="text" id="docTitleEs" class="form-control">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PDF Файл *</label>
+        <div class="upload-area" onclick="document.getElementById('docFileInput').click()">
+          <div class="upload-area-icon">📄</div>
+          <p>Нажмите для выбора PDF</p>
+          <small>Только PDF — макс. 20MB</small>
+          <p id="docFileName" style="margin-top:0.5rem;color:var(--color-gold);font-size:0.9rem;"></p>
+        </div>
+        <input type="file" id="docFileInput" accept=".pdf" style="display:none;" onchange="document.getElementById('docFileName').textContent=this.files[0]?.name||''">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Категория</label>
+        <select id="docCategory" class="form-control">
+          <option value="general">Общие</option>
+          <option value="rules">Правила игры</option>
+          <option value="regulations">Регламенты</option>
+          <option value="results">Результаты</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('docModal')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveDocument()">Загрузить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: PARTNER ──────────────────────────────────────── -->
+<div class="modal-overlay" id="partnerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="partnerModalTitle">Добавить партнёра</span>
+      <button class="modal-close" onclick="closeModal('partnerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="partnerId">
+      <div class="form-group">
+        <label class="form-label">Название партнёра *</label>
+        <input type="text" id="partnerName" class="form-control" placeholder="Kimpex Sport">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Сайт (URL)</label>
+        <input type="url" id="partnerUrl" class="form-control" placeholder="https://example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Логотип</label>
+        <div class="upload-area" onclick="document.getElementById('partnerLogoInput').click()">
+          <div class="upload-area-icon">🖼️</div>
+          <p>Нажмите для выбора логотипа</p>
+          <div class="upload-preview" id="partnerPreview" style="display:none;"></div>
+        </div>
+        <input type="file" id="partnerLogoInput" accept="image/*" style="display:none;" onchange="previewImage(this,'partnerPreview')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Порядок сортировки</label>
+        <input type="number" id="partnerOrder" class="form-control" value="0" min="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('partnerModal')">Отмена</button>
+      <button class="btn btn-primary" onclick="savePartner()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

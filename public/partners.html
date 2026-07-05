@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Партнёры — FIFUSA • UEFS</title>
+  <meta name="description" content="Партнёры и спонсоры FIFUSA и UEFS.">
+  <link rel="icon" type="image/png" href="/images/fifusa_logo.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="/" class="navbar-brand">FIFUSA <span class="dot">•</span> UEFS</a>
+  <div id="navMenu">
+    <a href="/" class="nav-link" data-i18n="nav.home">ГЛАВНАЯ</a>
+    <a href="/about.html" class="nav-link" data-i18n="nav.about">О НАС</a>
+    <a href="/documents.html" class="nav-link" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+    <a href="/news.html" class="nav-link" data-i18n="nav.news">НОВОСТИ</a>
+    <a href="/media.html" class="nav-link" data-i18n="nav.media">МЕДИА</a>
+    <a href="/partners.html" class="nav-link active" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+    <a href="/contact.html" class="nav-link" data-i18n="nav.contact">КОНТАКТ</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+    </div>
+  </div>
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page-header">
+  <div class="section-label">// FIFUSA • UEFS</div>
+  <h1 data-i18n="partners.page_title">ПАРТНЁРЫ</h1>
+  <p class="page-header-note" data-i18n="partners.page_note">Партнёры и спонсоры ФИФУСА и УЕФС. Список пополняется через админ-панель.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div class="grid-3" id="partnersGrid">
+    <!-- Kimpex — static partner -->
+    <div class="partner-white">
+      <img src="/images/kimpex_ball.png" alt="Kimpex" style="height:120px;">
+      <div class="partner-white-name">KIMPEX</div>
+    </div>
+    <!-- Cybercamera — static partner -->
+    <div class="partner-white" style="padding:20px;">
+      <img src="/images/adverisement_banner_in_footer.png" alt="Партнёр" style="width:100%;object-fit:contain;max-height:120px;">
+    </div>
+    <!-- Dynamic from API will be appended here -->
+    <div class="spinner-wrap" id="partnersLoader"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-banner">
+    <img src="/images/adverisement_banner_in_footer.png" alt="Banner">
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 FIFUSA • UEFS</span>
+    <div class="footer-links">
+      <a href="/about.html" data-i18n="nav.about">О НАС</a>
+      <a href="/documents.html" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+      <a href="/partners.html" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+      <a href="/news.html" data-i18n="nav.news">НОВОСТИ</a>
+      <a href="/media.html" data-i18n="nav.media">МЕДИА</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const grid = document.getElementById('partnersGrid');
+    const loader = document.getElementById('partnersLoader');
+
+    try {
+      const data = await FIFUSA.apiFetch('/api/partners');
+      const partners = Array.isArray(data) ? data : (data.items || []);
+      loader.remove();
+
+      // Add empty slots to fill visual grid
+      const SLOTS = Math.max(4, partners.length);
+      const apiHtml = partners.map(p => {
+        const tag = p.website_url ? 'a' : 'div';
+        const attrs = p.website_url ? `href="${p.website_url}" target="_blank" rel="noopener"` : '';
+        return `<${tag} ${attrs} class="partner-white" style="text-decoration:none;">
+          ${p.logo_path ? `<img src="${p.logo_path}" alt="${p.name}" style="max-height:80px;max-width:100%;object-fit:contain;">` : ''}
+          <div class="partner-white-name" style="color:var(--dark-blue);">${p.name}</div>
+        </${tag}>`;
+      }).join('');
+
+      // Add slot placeholders
+      const hint = 'слот партнёра · добавляется через админ-панель';
+      const slotsHtml = Array.from({ length: Math.max(0, SLOTS - partners.length) }, () => `
+        <div class="partner-slot">
+          <div class="partner-slot-img"></div>
+          <div class="partner-slot-hint">${hint}</div>
+        </div>
+      `).join('');
+
+      grid.insertAdjacentHTML('beforeend', apiHtml + slotsHtml);
+    } catch(e) {
+      loader.remove();
+    }
+  });
+</script>
+</body>
+</html>

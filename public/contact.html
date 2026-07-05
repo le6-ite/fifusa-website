@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Контакт — FIFUSA • UEFS</title>
+  <meta name="description" content="Свяжитесь с Международной Федерацией Футзала и Микрофутзала FIFUSA • UEFS.">
+  <link rel="icon" type="image/png" href="/images/fifusa_logo.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="/" class="navbar-brand">FIFUSA <span class="dot">•</span> UEFS</a>
+  <div id="navMenu">
+    <a href="/" class="nav-link" data-i18n="nav.home">ГЛАВНАЯ</a>
+    <a href="/about.html" class="nav-link" data-i18n="nav.about">О НАС</a>
+    <a href="/documents.html" class="nav-link" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+    <a href="/news.html" class="nav-link" data-i18n="nav.news">НОВОСТИ</a>
+    <a href="/media.html" class="nav-link" data-i18n="nav.media">МЕДИА</a>
+    <a href="/partners.html" class="nav-link" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+    <a href="/contact.html" class="nav-link active" data-i18n="nav.contact">КОНТАКТ</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+    </div>
+  </div>
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page-header">
+  <div class="section-label">// FIFUSA • UEFS</div>
+  <h1 data-i18n="contact.page_title">КОНТАКТ</h1>
+  <p class="page-header-note" data-i18n="contact.page_note">Свяжитесь с нами по любым вопросам. Ответим в ближайшее время.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div style="max-width: 680px;">
+
+    <div id="alertSuccess" style="display:none; padding:14px 18px; background:rgba(0,153,102,0.1); border:1px solid rgba(0,153,102,0.25); color:#10B981; margin-bottom:24px;">
+      <span data-i18n="contact.success">✓ Сообщение отправлено. Мы свяжемся с вами.</span>
+    </div>
+    <div id="alertError" style="display:none; padding:14px 18px; background:rgba(199,0,54,0.1); border:1px solid rgba(199,0,54,0.25); color:#F43F5E; margin-bottom:24px;">
+      <span data-i18n="contact.error">✗ Ошибка отправки. Попробуйте ещё раз.</span>
+    </div>
+
+    <form id="contactForm">
+      <div class="form-group">
+        <label class="form-label" for="name" data-i18n="contact.field_name">ИМЯ</label>
+        <input type="text" id="name" name="name" class="form-control" required data-i18n-placeholder="contact.field_name_ph">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="email" data-i18n="contact.field_email">EMAIL</label>
+        <input type="email" id="email" name="email" class="form-control" required data-i18n-placeholder="contact.field_email_ph">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="message" data-i18n="contact.field_message">СООБЩЕНИЕ</label>
+        <textarea id="message" name="message" class="form-control" required rows="7" data-i18n-placeholder="contact.field_message_ph"></textarea>
+      </div>
+      <button type="submit" class="btn-blue" id="submitBtn" data-i18n="contact.submit">ОТПРАВИТЬ</button>
+    </form>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-banner">
+    <img src="/images/adverisement_banner_in_footer.png" alt="Banner">
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 FIFUSA • UEFS</span>
+    <div class="footer-links">
+      <a href="/about.html" data-i18n="nav.about">О НАС</a>
+      <a href="/documents.html" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+      <a href="/partners.html" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+      <a href="/news.html" data-i18n="nav.news">НОВОСТИ</a>
+      <a href="/media.html" data-i18n="nav.media">МЕДИА</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  document.getElementById('contactForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const successEl = document.getElementById('alertSuccess');
+    const errorEl = document.getElementById('alertError');
+    successEl.style.display = 'none';
+    errorEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          message: document.getElementById('message').value
+        })
+      });
+      if (res.ok) {
+        successEl.style.display = 'block';
+        document.getElementById('contactForm').reset();
+      } else {
+        errorEl.style.display = 'block';
+      }
+    } catch {
+      errorEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      const lang = FIFUSA.getCurrentLang();
+      btn.textContent = lang === 'en' ? 'SEND' : lang === 'es' ? 'ENVIAR' : 'ОТПРАВИТЬ';
+    }
+  });
+</script>
+</body>
+</html>

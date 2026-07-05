@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Новость — FIFUSA • UEFS</title>
+  <meta name="description" content="Новость FIFUSA • UEFS.">
+  <link rel="icon" type="image/png" href="/images/fifusa_logo.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="/" class="navbar-brand">FIFUSA <span class="dot">•</span> UEFS</a>
+  <div id="navMenu">
+    <a href="/" class="nav-link" data-i18n="nav.home">ГЛАВНАЯ</a>
+    <a href="/about.html" class="nav-link" data-i18n="nav.about">О НАС</a>
+    <a href="/documents.html" class="nav-link" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+    <a href="/news.html" class="nav-link active" data-i18n="nav.news">НОВОСТИ</a>
+    <a href="/media.html" class="nav-link" data-i18n="nav.media">МЕДИА</a>
+    <a href="/partners.html" class="nav-link" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+    <a href="/contact.html" class="nav-link" data-i18n="nav.contact">КОНТАКТ</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+    </div>
+  </div>
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div id="articleContent">
+  <div class="spinner-wrap" style="min-height:60vh;"><div class="spinner"></div></div>
+</div>
+
+<footer>
+  <div class="footer-banner">
+    <img src="/images/adverisement_banner_in_footer.png" alt="Banner">
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 FIFUSA • UEFS</span>
+    <div class="footer-links">
+      <a href="/about.html" data-i18n="nav.about">О НАС</a>
+      <a href="/documents.html" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+      <a href="/partners.html" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+      <a href="/news.html" data-i18n="nav.news">НОВОСТИ</a>
+      <a href="/media.html" data-i18n="nav.media">МЕДИА</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  async function loadArticle() {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+    const container = document.getElementById('articleContent');
+
+    if (!slug) {
+      renderError(container, '404');
+      return;
+    }
+
+    try {
+      const article = await FIFUSA.apiFetch(`/api/news/${slug}`);
+      if (!article || article.error) { renderError(container, '404'); return; }
+      renderArticle(container, article);
+    } catch(e) {
+      renderError(container, 'error');
+    }
+  }
+
+  function renderArticle(container, a) {
+    const lang = FIFUSA.getCurrentLang();
+    const title = a['title_'+lang] || a.title_ru || 'Новость';
+    const body  = a['body_'+lang]  || a.body_ru  || '';
+    document.title = title + ' — FIFUSA • UEFS';
+
+    container.innerHTML = `
+      <div class="article-page">
+        <a href="/news.html" class="article-back">← <span data-i18n="article.back">Все новости</span></a>
+        <div class="article-category">FIFUSA • UEFS</div>
+        <h1 class="article-title">${title}</h1>
+        <div class="article-meta">
+          <span>${FIFUSA.formatDate(a.published_at)}</span>
+        </div>
+        ${a.preview_image ? `<img src="${a.preview_image}" alt="${title}" class="article-hero-img">` : ''}
+        <div class="article-body">${body || '<p>Текст статьи отсутствует.</p>'}</div>
+      </div>
+    `;
+  }
+
+  function renderError(container, type) {
+    container.innerHTML = `
+      <div class="article-page">
+        <a href="/news.html" class="article-back">← <span data-i18n="article.back">Все новости</span></a>
+        <div class="empty-state">
+          <div class="empty-icon">📰</div>
+          <p>${type === '404' ? 'Статья не найдена' : 'Ошибка загрузки'}</p>
+          <a href="/news.html" class="btn-blue" style="margin-top:24px;display:inline-block;">К НОВОСТЯМ</a>
+        </div>
+      </div>
+    `;
+  }
+
+  document.addEventListener('DOMContentLoaded', loadArticle);
+  document.addEventListener('fifusa:langchange', loadArticle);
+</script>
+</body>
+</html>

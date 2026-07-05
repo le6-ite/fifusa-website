@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Медиа — FIFUSA • UEFS</title>
+  <meta name="description" content="Фото и видео с турниров и событий FIFUSA и UEFS.">
+  <link rel="icon" type="image/png" href="/images/fifusa_logo.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="/" class="navbar-brand">FIFUSA <span class="dot">•</span> UEFS</a>
+  <div id="navMenu">
+    <a href="/" class="nav-link" data-i18n="nav.home">ГЛАВНАЯ</a>
+    <a href="/about.html" class="nav-link" data-i18n="nav.about">О НАС</a>
+    <a href="/documents.html" class="nav-link" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+    <a href="/news.html" class="nav-link" data-i18n="nav.news">НОВОСТИ</a>
+    <a href="/media.html" class="nav-link active" data-i18n="nav.media">МЕДИА</a>
+    <a href="/partners.html" class="nav-link" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+    <a href="/contact.html" class="nav-link" data-i18n="nav.contact">КОНТАКТ</a>
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="es">ES</button>
+    </div>
+  </div>
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page-header">
+  <div class="section-label">// FIFUSA • UEFS</div>
+  <h1 data-i18n="media.page_title">МЕДИА</h1>
+  <p class="page-header-note" data-i18n="media.page_note">Фото и видео с прошедших турниров и событий. Материалы добавляются через админ-панель.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab active" data-filter="all" data-i18n="media.filter_all">ВСЕ</button>
+    <button class="filter-tab" data-filter="photo" data-i18n="media.filter_photo">ФОТО</button>
+    <button class="filter-tab" data-filter="video" data-i18n="media.filter_video">ВИДЕО</button>
+  </div>
+
+  <div id="mediaGrid" class="grid-3">
+    <div class="spinner-wrap" style="grid-column:1/-1"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-banner">
+    <img src="/images/adverisement_banner_in_footer.png" alt="Banner">
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 FIFUSA • UEFS</span>
+    <div class="footer-links">
+      <a href="/about.html" data-i18n="nav.about">О НАС</a>
+      <a href="/documents.html" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
+      <a href="/partners.html" data-i18n="nav.partners">ПАРТНЁРЫ</a>
+      <a href="/news.html" data-i18n="nav.news">НОВОСТИ</a>
+      <a href="/media.html" data-i18n="nav.media">МЕДИА</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>
+  let allMedia = [];
+  let activeFilter = 'all';
+
+  function getYouTubeId(url) {
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  function getVimeoId(url) {
+    const m = url.match(/vimeo\.com\/(\d+)/);
+    return m ? m[1] : null;
+  }
+
+  function renderMedia(items) {
+    const grid = document.getElementById('mediaGrid');
+    const lang = FIFUSA.getCurrentLang();
+    const filtered = activeFilter === 'all' ? items : items.filter(m => m.media_type === activeFilter);
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">📷</div>
+        <p data-i18n="media.empty">Медиа пока нет</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(m => {
+      const title = m['title_'+lang] || m.title_ru || '';
+      const meta = FIFUSA.formatDate(m.created_at);
+      const badge = m.media_type === 'video' ? 'ВИДЕО' : 'ФОТО';
+
+      let mediaHtml;
+      if (m.media_type === 'video' && m.embed_url) {
+        const ytId = getYouTubeId(m.embed_url);
+        const vmId = getVimeoId(m.embed_url);
+        if (ytId) {
+          mediaHtml = `<div class="card-video-wrap"><iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen loading="lazy"></iframe></div>`;
+        } else if (vmId) {
+          mediaHtml = `<div class="card-video-wrap"><iframe src="https://player.vimeo.com/video/${vmId}" allowfullscreen loading="lazy"></iframe></div>`;
+        } else {
+          mediaHtml = `<div class="card-img-placeholder"><span class="card-badge">${badge}</span>медиа ивента</div>`;
+        }
+      } else if (m.file_path) {
+        mediaHtml = `<div class="card-img-placeholder" style="padding:0;"><img src="${m.file_path}" alt="${title}" class="card-img"><span class="card-badge">${badge}</span></div>`;
+      } else {
+        mediaHtml = `<div class="card-img-placeholder"><span class="card-badge">${badge}</span>медиа ивента · из админ-панели</div>`;
+      }
+
+      return `<div class="card reveal">
+        ${mediaHtml}
+        <div class="card-body">
+          <div class="card-meta">${meta}</div>
+          <div class="card-title">${title}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    FIFUSA.observeNewRevealElements();
+  }
+
+  async function loadMedia() {
+    const grid = document.getElementById('mediaGrid');
+    grid.innerHTML = '<div class="spinner-wrap" style="grid-column:1/-1"><div class="spinner"></div></div>';
+    try {
+      const data = await FIFUSA.apiFetch('/api/media');
+      allMedia = Array.isArray(data) ? data : (data.items || []);
+      renderMedia(allMedia);
+    } catch(e) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Не удалось загрузить медиа</p></div>`;
+    }
+  }
+
+  document.querySelectorAll('.filter-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderMedia(allMedia);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', loadMedia);
+  document.addEventListener('fifusa:langchange', () => renderMedia(allMedia));
+</script>
+</body>
+</html>
