@@ -23,6 +23,8 @@ router.get('/news', (req, res) => {
 router.get('/news/:slug', (req, res) => {
   const item = get('SELECT * FROM news WHERE slug = ? AND is_published = 1', [req.params.slug]);
   if (!item) return res.status(404).json({ error: 'Not found' });
+  item.images = query('SELECT image_path FROM news_images WHERE news_id = ? ORDER BY sort_order ASC', [item.id])
+    .map(row => row.image_path);
   res.json(item);
 });
 

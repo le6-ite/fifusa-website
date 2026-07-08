@@ -126,7 +126,7 @@
       <div class="admin-panel">
         <div class="admin-panel-header">
           <span class="admin-panel-title">Новости</span>
-          <button class="btn btn-primary" onclick="openModal('newsModal')" style="font-size:0.9rem;padding:0.5rem 1.5rem;">+ Добавить</button>
+          <button class="btn btn-primary" onclick="clearNewsForm(); openModal('newsModal')" style="font-size:0.9rem;padding:0.5rem 1.5rem;">+ Добавить</button>
         </div>
         <div class="admin-panel-body" style="padding:0;">
           <table class="admin-table">
@@ -289,14 +289,20 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Обложка (изображение)</label>
+        <label class="form-label">Изображения</label>
+        <div class="news-image-grid" id="newsExistingImages"></div>
         <div class="upload-area" id="newsUploadArea" onclick="document.getElementById('newsImageInput').click()">
           <div class="upload-area-icon">🖼️</div>
-          <p>Нажмите или перетащите изображение</p>
-          <small>JPG, PNG, WebP — макс. 20MB</small>
-          <div class="upload-preview" id="newsPreview" style="display:none;"></div>
+          <p>Нажмите или перетащите изображения</p>
+          <small>JPG, PNG, WebP — можно несколько сразу, макс. 20MB каждое</small>
         </div>
-        <input type="file" id="newsImageInput" accept="image/*" style="display:none;" onchange="previewImage(this,'newsPreview','newsUploadArea')">
+        <div class="news-image-grid" id="newsPendingImages"></div>
+        <input type="file" id="newsImageInput" accept="image/*" multiple style="display:none;" onchange="handleNewsFiles(this)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Дата публикации</label>
+        <input type="datetime-local" id="newsPublishedAt" class="form-control">
+        <small style="color:var(--text-disabled);">Можно указать прошедшую дату — удобно для переноса старых новостей</small>
       </div>
       <div class="form-group">
         <div class="toggle-wrap">

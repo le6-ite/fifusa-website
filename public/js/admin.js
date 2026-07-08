@@ -116,6 +116,107 @@ function previewImage(input, previewId, areaId) {
   }
 }
 
+// ─── NEWS: MULTI-IMAGE GALLERY (new, unsaved uploads) ─────
+
+let pendingNewsFiles = [];   // File objects picked but not yet uploaded
+let existingNewsImages = []; // { id, image_path, sort_order } already saved on the server
+
+const MAX_NEWS_IMAGES = 10;
+
+function handleNewsFiles(input) {
+  const files = Array.from(input.files || []);
+  const room = MAX_NEWS_IMAGES - existingNewsImages.length - pendingNewsFiles.length;
+  if (files.length > room) {
+    showToast(`Максимум ${MAX_NEWS_IMAGES} изображений на новость`, 'error');
+  }
+  pendingNewsFiles = pendingNewsFiles.concat(files.slice(0, Math.max(0, room)));
+  input.value = '';
+  renderPendingNewsImages();
+}
+
+function renderPendingNewsImages() {
+  const wrap = document.getElementById('newsPendingImages');
+  wrap.innerHTML = pendingNewsFiles.map((file, i) => `
+    <div class="news-image-thumb">
+      <img src="${URL.createObjectURL(file)}">
+      <div class="news-image-thumb-actions">
+        <button type="button" onclick="movePendingImage(${i},-1)" ${i===0?'disabled':''}>‹</button>
+        <button type="button" onclick="movePendingImage(${i},1)" ${i===pendingNewsFiles.length-1?'disabled':''}>›</button>
+        <button type="button" onclick="removePendingImage(${i})">✕</button>
+      </div>
+      <span class="news-image-thumb-badge">новое</span>
+    </div>
+  `).join('');
+}
+
+function movePendingImage(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= pendingNewsFiles.length) return;
+  [pendingNewsFiles[i], pendingNewsFiles[j]] = [pendingNewsFiles[j], pendingNewsFiles[i]];
+  renderPendingNewsImages();
+}
+
+function removePendingImage(i) {
+  pendingNewsFiles.splice(i, 1);
+  renderPendingNewsImages();
+}
+
+// ─── NEWS: EXISTING IMAGES (already saved, editing only) ──
+
+async function loadExistingNewsImages(newsId) {
+  const res = await adminFetch(`/api/admin/news/${newsId}/images`);
+  const data = res ? await res.json() : { items: [] };
+  existingNewsImages = data.items || [];
+  renderExistingNewsImages();
+}
+
+function renderExistingNewsImages() {
+  const wrap = document.getElementById('newsExistingImages');
+  wrap.innerHTML = existingNewsImages.map((img, i) => `
+    <div class="news-image-thumb">
+      <img src="${img.image_path}">
+      <div class="news-image-thumb-actions">
+        <button type="button" onclick="moveExistingImage(${i},-1)" ${i===0?'disabled':''}>‹</button>
+        <button type="button" onclick="moveExistingImage(${i},1)" ${i===existingNewsImages.length-1?'disabled':''}>›</button>
+        <button type="button" onclick="removeExistingImage(${img.id})">✕</button>
+      </div>
+      ${i===0 ? '<span class="news-image-thumb-badge">обложка</span>' : ''}
+    </div>
+  `).join('');
+}
+
+async function moveExistingImage(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= existingNewsImages.length) return;
+  [existingNewsImages[i], existingNewsImages[j]] = [existingNewsImages[j], existingNewsImages[i]];
+  renderExistingNewsImages();
+  const id = document.getElementById('newsId').value;
+  await adminFetch(`/api/admin/news/${id}/images/order`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order: existingNewsImages.map(img => img.id) }),
+  });
+}
+
+async function removeExistingImage(imageId) {
+  const id = document.getElementById('newsId').value;
+  await adminFetch(`/api/admin/news/${id}/images/${imageId}`, { method: 'DELETE' });
+  existingNewsImages = existingNewsImages.filter(img => img.id !== imageId);
+  renderExistingNewsImages();
+}
+
+// ─── NEWS: PUBLISHED-AT HELPERS ────────────────────────────
+
+function sqlDateToLocalInput(sqlDate) {
+  if (!sqlDate) return '';
+  return sqlDate.slice(0, 16).replace(' ', 'T');
+}
+
+function localInputToSqlDate(inputValue) {
+  if (!inputValue) return '';
+  return inputValue.replace('T', ' ') + ':00';
+}
+
 function toggleMediaType() {
   const type = document.getElementById('mediaType').value;
   document.getElementById('mediaPhotoUpload').style.display = type === 'photo' ? 'block' : 'none';
@@ -190,8 +291,10 @@ async function saveNews() {
   formData.append('body_es', document.getElementById('newsBodyEs').value);
   formData.append('is_published', document.getElementById('newsPublished').checked ? '1' : '0');
 
-  const imageFile = document.getElementById('newsImageInput').files[0];
-  if (imageFile) formData.append('image', imageFile);
+  const publishedAtInput = document.getElementById('newsPublishedAt').value;
+  if (publishedAtInput) formData.append('published_at', localInputToSqlDate(publishedAtInput));
+
+  pendingNewsFiles.forEach(file => formData.append('images', file));
 
   if (!formData.get('title_ru')) {
     showToast('Заголовок (RU) обязателен', 'error');
@@ -227,7 +330,13 @@ async function editNews(id) {
   document.getElementById('newsBodyEn').value = news.body_en || '';
   document.getElementById('newsBodyEs').value = news.body_es || '';
   document.getElementById('newsPublished').checked = !!news.is_published;
+  document.getElementById('newsPublishedAt').value = sqlDateToLocalInput(news.published_at);
   document.getElementById('newsModalTitle').textContent = 'Редактировать новость';
+
+  pendingNewsFiles = [];
+  renderPendingNewsImages();
+  await loadExistingNewsImages(news.id);
+
   openModal('newsModal');
 }
 
@@ -243,9 +352,15 @@ function clearNewsForm() {
     document.getElementById(id).value = '';
   });
   document.getElementById('newsPublished').checked = true;
-  document.getElementById('newsPreview').style.display = 'none';
+  const now = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+  document.getElementById('newsPublishedAt').value = now.toISOString().slice(0, 16);
   document.getElementById('newsImageInput').value = '';
   document.getElementById('newsModalTitle').textContent = 'Добавить новость';
+
+  pendingNewsFiles = [];
+  existingNewsImages = [];
+  renderPendingNewsImages();
+  renderExistingNewsImages();
 }
 
 // ─── MEDIA ────────────────────────────────────────────────

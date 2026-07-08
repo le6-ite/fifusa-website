@@ -86,8 +86,22 @@
         <div class="article-meta">
           <span>${FIFUSA.formatDate(a.published_at)}</span>
         </div>
-        ${a.preview_image ? `<img src="${a.preview_image}" alt="${title}" class="article-hero-img">` : ''}
+        ${renderArticleImages(a, title)}
         <div class="article-body">${body || '<p>Текст статьи отсутствует.</p>'}</div>
+      </div>
+    `;
+  }
+
+  function renderArticleImages(a, title) {
+    const images = (a.images && a.images.length) ? a.images : (a.preview_image ? [a.preview_image] : []);
+    if (!images.length) return '';
+    if (images.length === 1) {
+      return `<img src="${images[0]}" alt="${title}" class="article-hero-img">`;
+    }
+    return `
+      <img src="${images[0]}" alt="${title}" class="article-hero-img">
+      <div class="article-gallery">
+        ${images.slice(1).map(src => `<img src="${src}" alt="${title}" class="article-gallery-img">`).join('')}
       </div>
     `;
   }

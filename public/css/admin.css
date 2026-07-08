@@ -5,7 +5,87 @@
 :root {
   --admin-sidebar-w: 260px;
   --admin-header-h: 64px;
+
+  /* Admin theme tokens — separate accent (gold) from the public site's blue,
+     so the admin panel reads as a distinct, deliberate "control room" surface. */
+  --bg-primary: #0b0e14;
+  --bg-primary-soft: #12161f;
+  --bg-primary-strong: #060810;
+
+  --text-heading: #F2F4F8;
+  --text-body: #B9C1D2;
+  --text-disabled: #5b6478;
+
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-blur: 12px;
+  --glass-border: rgba(255,255,255,0.08);
+
+  --gold: #F5C518;
+  --gold-subtle: rgba(245,197,24,0.12);
+
+  --radius-base: 6px;
+  --radius-default: 10px;
+  --radius-sm: 6px;
+  --radius-full: 999px;
+
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.3);
+  --shadow-xl: 0 16px 40px rgba(0,0,0,0.35);
+  --shadow-2xl: 0 24px 60px rgba(0,0,0,0.4);
+
+  --t-fast: 0.15s ease;
+  --t-base: 0.25s ease;
+
+  /* Aliases for the --color-* names used inline in admin.js/admin/index.html */
+  --color-bg-3: #171c27;
+  --color-border-soft: rgba(255,255,255,0.08);
+  --color-error: #ef4444;
+  --color-gold: #F5C518;
+  --color-text-dim: #8792A6;
+  --color-text-muted: #8792A6;
 }
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+/* .btn/.btn-primary/.btn-ghost/.btn-danger are used throughout the admin
+   panel but only existed on the old (pre-redesign) public stylesheet. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-default);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  text-decoration: none;
+}
+
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--bg-primary-strong);
+}
+.btn-primary:hover:not(:disabled) { opacity: 0.88; }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--glass-border);
+  color: var(--text-body);
+}
+.btn-ghost:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+
+.btn-danger {
+  background: rgba(239,68,68,0.12);
+  border-color: rgba(239,68,68,0.3);
+  color: var(--color-error);
+}
+.btn-danger:hover:not(:disabled) { background: rgba(239,68,68,0.22); }
 
 /* ─── LAYOUT ─────────────────────────────────────────────── */
 
@@ -371,6 +451,63 @@ body.admin-body {
 
 .upload-preview { margin-top: 12px; max-width: 180px; border-radius: var(--radius-sm); overflow: hidden; }
 .upload-preview img { width: 100%; }
+
+.news-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.news-image-grid:empty { display: none; margin: 0; }
+
+.news-image-thumb {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  aspect-ratio: 1;
+  background: var(--bg-primary-strong);
+}
+.news-image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.news-image-thumb-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(6,8,16,0.55);
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+.news-image-thumb:hover .news-image-thumb-actions { opacity: 1; }
+
+.news-image-thumb-actions button {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--bg-primary-soft);
+  color: var(--text-heading);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.news-image-thumb-actions button:hover:not(:disabled) { background: var(--gold); color: var(--bg-primary-strong); }
+.news-image-thumb-actions button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.news-image-thumb-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--gold);
+  color: var(--bg-primary-strong);
+  font-weight: 700;
+  text-transform: uppercase;
+}
 
 /* ─── TOGGLE ─────────────────────────────────────────────── */
 

@@ -53,40 +53,90 @@ router.get('/verify', authMiddleware, (req, res) => {
 
 // ─── NEWS CRUD ───────────────────────────────────────────
 
+// Cover = first image in display order. Keeps news.preview_image (used by
+// list/card views) in sync whenever the gallery is uploaded, reordered, or trimmed.
+function syncCoverImage(newsId) {
+  const first = get('SELECT image_path FROM news_images WHERE news_id = ? ORDER BY sort_order ASC LIMIT 1', [newsId]);
+  run('UPDATE news SET preview_image = ? WHERE id = ?', [first ? first.image_path : null, newsId]);
+}
+
 router.get('/news', authMiddleware, (req, res) => {
   const items = query('SELECT * FROM news ORDER BY published_at DESC');
   res.json({ items });
 });
 
-router.post('/news', authMiddleware, upload.single('image'), (req, res) => {
-  const { title_ru, title_en, title_es, body_ru, body_en, body_es, is_published } = req.body;
+router.get('/news/:id/images', authMiddleware, (req, res) => {
+  const items = query('SELECT * FROM news_images WHERE news_id = ? ORDER BY sort_order ASC', [req.params.id]);
+  res.json({ items });
+});
+
+router.post('/news', authMiddleware, upload.array('images', 10), (req, res) => {
+  const { title_ru, title_en, title_es, body_ru, body_en, body_es, is_published, published_at } = req.body;
   if (!title_ru) return res.status(400).json({ error: 'title_ru is required' });
 
   const slug = slugify(title_ru, { lower: true }) + '-' + Date.now();
-  const preview_image = req.file ? `/uploads/images/${req.file.filename}` : null;
 
   const result = run(
-    'INSERT INTO news (slug, title_ru, title_en, title_es, body_ru, body_en, body_es, preview_image, is_published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [slug, title_ru, title_en || null, title_es || null, body_ru || null, body_en || null, body_es || null, preview_image, is_published === '1' ? 1 : 0]
+    'INSERT INTO news (slug, title_ru, title_en, title_es, body_ru, body_en, body_es, is_published, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP))',
+    [slug, title_ru, title_en || null, title_es || null, body_ru || null, body_en || null, body_es || null, is_published === '1' ? 1 : 0, published_at || null]
   );
+
+  (req.files || []).forEach((file, i) => {
+    run('INSERT INTO news_images (news_id, image_path, sort_order) VALUES (?, ?, ?)',
+      [result.lastInsertRowid, `/uploads/images/${file.filename}`, i]);
+  });
+  syncCoverImage(result.lastInsertRowid);
+
   res.json({ id: result.lastInsertRowid, slug });
 });
 
-router.put('/news/:id', authMiddleware, upload.single('image'), (req, res) => {
-  const { title_ru, title_en, title_es, body_ru, body_en, body_es, is_published } = req.body;
+router.put('/news/:id', authMiddleware, upload.array('images', 10), (req, res) => {
+  const { title_ru, title_en, title_es, body_ru, body_en, body_es, is_published, published_at } = req.body;
   const existing = get('SELECT * FROM news WHERE id = ?', [req.params.id]);
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
-  const preview_image = req.file ? `/uploads/images/${req.file.filename}` : existing.preview_image;
-
   run(
-    'UPDATE news SET title_ru=?, title_en=?, title_es=?, body_ru=?, body_en=?, body_es=?, preview_image=?, is_published=? WHERE id=?',
-    [title_ru, title_en || null, title_es || null, body_ru || null, body_en || null, body_es || null, preview_image, is_published === '1' ? 1 : 0, req.params.id]
+    'UPDATE news SET title_ru=?, title_en=?, title_es=?, body_ru=?, body_en=?, body_es=?, is_published=?, published_at=COALESCE(?, published_at) WHERE id=?',
+    [title_ru, title_en || null, title_es || null, body_ru || null, body_en || null, body_es || null, is_published === '1' ? 1 : 0, published_at || null, req.params.id]
   );
+
+  if (req.files && req.files.length) {
+    const maxRow = get('SELECT MAX(sort_order) as m FROM news_images WHERE news_id = ?', [req.params.id]);
+    let nextOrder = (maxRow && maxRow.m !== null ? maxRow.m : -1) + 1;
+    req.files.forEach(file => {
+      run('INSERT INTO news_images (news_id, image_path, sort_order) VALUES (?, ?, ?)',
+        [req.params.id, `/uploads/images/${file.filename}`, nextOrder++]);
+    });
+    syncCoverImage(req.params.id);
+  }
+
+  res.json({ success: true });
+});
+
+router.put('/news/:id/images/order', authMiddleware, (req, res) => {
+  const { order } = req.body; // array of news_images.id in desired order
+  if (!Array.isArray(order)) return res.status(400).json({ error: 'order must be an array' });
+
+  order.forEach((imageId, i) => {
+    run('UPDATE news_images SET sort_order = ? WHERE id = ? AND news_id = ?', [i, imageId, req.params.id]);
+  });
+  syncCoverImage(req.params.id);
+  res.json({ success: true });
+});
+
+router.delete('/news/:id/images/:imageId', authMiddleware, (req, res) => {
+  const img = get('SELECT * FROM news_images WHERE id = ? AND news_id = ?', [req.params.imageId, req.params.id]);
+  if (img) {
+    const filePath = path.join(uploadDir, 'images', path.basename(img.image_path));
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    run('DELETE FROM news_images WHERE id = ?', [req.params.imageId]);
+  }
+  syncCoverImage(req.params.id);
   res.json({ success: true });
 });
 
 router.delete('/news/:id', authMiddleware, (req, res) => {
+  run('DELETE FROM news_images WHERE news_id = ?', [req.params.id]);
   run('DELETE FROM news WHERE id = ?', [req.params.id]);
   res.json({ success: true });
 });

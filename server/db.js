@@ -24,9 +24,29 @@ async function getDb() {
   // Enable WAL-like behavior (sql.js is in-memory, we persist manually)
   initSchema();
   await createDefaultAdmin();
+  backfillNewsImages();
   console.log('✅ Database initialized');
 
   return db;
+}
+
+// One-time migration: posts created before the multi-image gallery existed
+// only have `preview_image` set. Give each of them a matching news_images
+// row so they show up (and become reorderable/deletable) in the new gallery editor.
+function backfillNewsImages() {
+  const rows = db.exec(`
+    SELECT n.id, n.preview_image FROM news n
+    WHERE n.preview_image IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM news_images ni WHERE ni.news_id = n.id)
+  `);
+  if (!rows.length) return;
+  const { columns, values } = rows[0];
+  const idIdx = columns.indexOf('id');
+  const imgIdx = columns.indexOf('preview_image');
+  values.forEach(row => {
+    db.run('INSERT INTO news_images (news_id, image_path, sort_order) VALUES (?, ?, 0)', [row[idIdx], row[imgIdx]]);
+  });
+  persistDb();
 }
 
 function initSchema() {
@@ -50,6 +70,13 @@ function initSchema() {
       preview_image TEXT,
       published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       is_published INTEGER DEFAULT 1
+    );
+
+    CREATE TABLE IF NOT EXISTS news_images (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      news_id INTEGER NOT NULL,
+      image_path TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS media (
