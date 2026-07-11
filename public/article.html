@@ -72,17 +72,24 @@
     }
   }
 
+  function escHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
   function renderArticle(container, a) {
     const lang = FIFUSA.getCurrentLang();
     const title = a['title_'+lang] || a.title_ru || 'Новость';
     const body  = a['body_'+lang]  || a.body_ru  || '';
     document.title = title + ' — FIFUSA • UEFS';
 
+    // Body is rendered raw on purpose (admin-authored rich text);
+    // title and image paths are escaped.
     container.innerHTML = `
       <div class="article-page">
         <a href="/news.html" class="article-back">← <span data-i18n="article.back">Все новости</span></a>
         <div class="article-category">FIFUSA • UEFS</div>
-        <h1 class="article-title">${title}</h1>
+        <h1 class="article-title">${escHtml(title)}</h1>
         <div class="article-meta">
           <span>${FIFUSA.formatDate(a.published_at)}</span>
         </div>
@@ -95,13 +102,14 @@
   function renderArticleImages(a, title) {
     const images = (a.images && a.images.length) ? a.images : (a.preview_image ? [a.preview_image] : []);
     if (!images.length) return '';
+    const alt = escHtml(title);
     if (images.length === 1) {
-      return `<img src="${images[0]}" alt="${title}" class="article-hero-img">`;
+      return `<img src="${escHtml(images[0])}" alt="${alt}" class="article-hero-img">`;
     }
     return `
-      <img src="${images[0]}" alt="${title}" class="article-hero-img">
+      <img src="${escHtml(images[0])}" alt="${alt}" class="article-hero-img">
       <div class="article-gallery">
-        ${images.slice(1).map(src => `<img src="${src}" alt="${title}" class="article-gallery-img">`).join('')}
+        ${images.slice(1).map(src => `<img src="${escHtml(src)}" alt="${alt}" class="article-gallery-img">`).join('')}
       </div>
     `;
   }

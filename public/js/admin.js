@@ -36,6 +36,16 @@ async function adminFetch(url, options = {}) {
   return res;
 }
 
+// ─── ESCAPING ─────────────────────────────────────────────
+// Everything rendered into the admin tables goes through here. Contact
+// messages especially: they are public input, and unescaped HTML there
+// would run scripts inside the authenticated admin session.
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // ─── TOAST ────────────────────────────────────────────────
 
 function showToast(message, type = 'success') {
@@ -269,7 +279,7 @@ async function loadNews() {
 
   tbody.innerHTML = data.items.map(n => `
     <tr>
-      <td><strong>${n.title_ru || '—'}</strong></td>
+      <td><strong>${esc(n.title_ru) || '—'}</strong></td>
       <td style="font-size:0.85rem;color:var(--color-text-muted);">${new Date(n.published_at).toLocaleDateString('ru-RU')}</td>
       <td><span class="badge ${n.is_published ? 'badge-success' : 'badge-muted'}">${n.is_published ? 'Опубликована' : 'Скрыта'}</span></td>
       <td style="display:flex;gap:0.5rem;">
@@ -377,7 +387,7 @@ async function loadMedia() {
 
   tbody.innerHTML = data.items.map(m => `
     <tr>
-      <td><strong>${m.title_ru || '—'}</strong></td>
+      <td><strong>${esc(m.title_ru) || '—'}</strong></td>
       <td><span class="badge badge-gold">${m.media_type === 'video' ? '🎥 Видео' : '📷 Фото'}</span></td>
       <td style="font-size:0.85rem;color:var(--color-text-muted);">${m.event_date || '—'}</td>
       <td>
@@ -434,7 +444,7 @@ async function loadDocuments() {
 
   tbody.innerHTML = data.items.map(d => `
     <tr>
-      <td><strong>${d.title_ru || '—'}</strong></td>
+      <td><strong>${esc(d.title_ru) || '—'}</strong></td>
       <td><span class="badge badge-muted">${d.category || 'general'}</span></td>
       <td style="font-size:0.85rem;color:var(--color-text-muted);">${new Date(d.created_at).toLocaleDateString('ru-RU')}</td>
       <td style="display:flex;gap:0.5rem;">
@@ -487,9 +497,9 @@ async function loadPartners() {
 
   tbody.innerHTML = data.items.map(p => `
     <tr>
-      <td>${p.logo_path ? `<img src="${p.logo_path}" style="height:36px;object-fit:contain;">` : '—'}</td>
-      <td><strong>${p.name}</strong></td>
-      <td>${p.website_url ? `<a href="${p.website_url}" target="_blank" style="color:var(--color-gold);font-size:0.85rem;">Открыть ↗</a>` : '—'}</td>
+      <td>${p.logo_path ? `<img src="${esc(p.logo_path)}" style="height:36px;object-fit:contain;">` : '—'}</td>
+      <td><strong>${esc(p.name)}</strong></td>
+      <td>${p.website_url ? `<a href="${esc(p.website_url)}" target="_blank" rel="noopener" style="color:var(--color-gold);font-size:0.85rem;">Открыть ↗</a>` : '—'}</td>
       <td>${p.sort_order}</td>
       <td>
         <button class="btn btn-danger" style="padding:0.35rem 0.75rem;font-size:0.8rem;" onclick="deletePartner(${p.id})">🗑️ Удалить</button>
@@ -541,9 +551,9 @@ async function loadMessages() {
 
   tbody.innerHTML = data.items.map(m => `
     <tr style="${!m.is_read ? 'background:rgba(245,197,24,0.03)' : ''}">
-      <td><strong>${m.name}</strong></td>
-      <td><a href="mailto:${m.email}" style="color:var(--color-gold);">${m.email}</a></td>
-      <td style="max-width:300px;font-size:0.85rem;color:var(--color-text-muted);">${m.message.substring(0,120)}${m.message.length > 120 ? '...' : ''}</td>
+      <td><strong>${esc(m.name)}</strong></td>
+      <td><a href="mailto:${esc(m.email)}" style="color:var(--color-gold);">${esc(m.email)}</a></td>
+      <td style="max-width:300px;font-size:0.85rem;color:var(--color-text-muted);">${esc(m.message.substring(0,120))}${m.message.length > 120 ? '...' : ''}</td>
       <td style="font-size:0.8rem;color:var(--color-text-dim);">${new Date(m.created_at).toLocaleDateString('ru-RU')}</td>
       <td><span class="badge ${m.is_read ? 'badge-muted' : 'badge-gold'}">${m.is_read ? 'Прочитано' : 'Новое'}</span></td>
       <td style="display:flex;gap:0.5rem;">

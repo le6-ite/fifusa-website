@@ -1,6 +1,12 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fifusa-super-secret-key-2024';
+// No fallback on purpose: a hardcoded default secret would let anyone
+// forge admin tokens if .env ever fails to load. Better to not start at all.
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('❌ JWT_SECRET is not set. Add it to .env before starting.');
+  process.exit(1);
+}
 const JWT_EXPIRES = '24h';
 
 function generateToken(user) {

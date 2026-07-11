@@ -1,6 +1,7 @@
-require('dotenv').config();
+// Load .env relative to the app, not the process cwd — otherwise starting
+// the server from any other directory silently skips it.
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const express = require('express');
-const cors = require('cors');
 const path = require('path');
 const { getDb } = require('./db');
 
@@ -9,7 +10,11 @@ const PORT = process.env.PORT || 3000;
 
 // ─── MIDDLEWARE ──────────────────────────────────────────
 
-app.use(cors());
+// Frontend and API are same-origin, so no CORS middleware: an open
+// `cors()` would only invite cross-site callers.
+// Behind nginx: trust X-Forwarded-For so req.ip is the real client
+// (login rate limiting depends on it).
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

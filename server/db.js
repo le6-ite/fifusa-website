@@ -127,11 +127,17 @@ function initSchema() {
 async function createDefaultAdmin() {
   const res = db.exec("SELECT id FROM users WHERE username = 'admin'");
   if (res.length === 0 || res[0].values.length === 0) {
-    const defaultPassword = process.env.ADMIN_PASSWORD || 'fifusa2024!';
-    const hash = bcrypt.hashSync(defaultPassword, 10);
+    // Only consulted on very first boot (fresh DB). No fallback: a known
+    // default password on a public admin panel is an instant takeover.
+    const password = process.env.ADMIN_PASSWORD;
+    if (!password) {
+      console.error('❌ ADMIN_PASSWORD is not set. Add it to .env before first start.');
+      process.exit(1);
+    }
+    const hash = bcrypt.hashSync(password, 10);
     db.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', ['admin', hash]);
     persistDb();
-    console.log('✅ Default admin created. Password:', defaultPassword);
+    console.log('✅ Default admin created (username: admin)');
   }
 }
 

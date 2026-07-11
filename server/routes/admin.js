@@ -12,6 +12,17 @@ const { generateToken, authMiddleware } = require('../auth');
 
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 
+// Extension is derived from the allowed mimetype, never from the client's
+// filename — otherwise "evil.html" declared as image/png would be stored
+// as .html and served executable from /uploads.
+const EXT_BY_MIME = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+  'application/pdf': '.pdf',
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const subDir = file.mimetype === 'application/pdf' ? 'documents' : 'images';
@@ -21,28 +32,58 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
+    cb(null, unique + EXT_BY_MIME[file.mimetype]);
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
-  cb(null, allowed.includes(file.mimetype));
+  cb(null, Object.keys(EXT_BY_MIME).includes(file.mimetype));
 };
 
 const upload = multer({ storage, fileFilter, limits: { fileSize: 20 * 1024 * 1024 } });
 
 // ─── AUTH ────────────────────────────────────────────────
 
-router.post('/login', (req, res) => {
+// Brute-force guard: 5 failed logins per IP → 15-minute lockout.
+// In-memory is fine here: single-process app, and a restart clearing the
+// counters is acceptable.
+const loginAttempts = new Map(); // ip -> { count, lockedUntil }
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
+function loginLimiter(req, res, next) {
+  const rec = loginAttempts.get(req.ip);
+  if (rec && rec.lockedUntil && rec.lockedUntil > Date.now()) {
+    return res.status(429).json({ error: 'Too many failed attempts. Try again in 15 minutes.' });
+  }
+  next();
+}
+
+function recordLoginFailure(ip) {
+  const rec = loginAttempts.get(ip) || { count: 0, lockedUntil: 0 };
+  rec.count += 1;
+  if (rec.count >= MAX_LOGIN_ATTEMPTS) {
+    rec.lockedUntil = Date.now() + LOCKOUT_MS;
+    rec.count = 0;
+  }
+  loginAttempts.set(ip, rec);
+  // Prune expired lockouts so the map doesn't grow forever
+  for (const [key, r] of loginAttempts) {
+    if (r.lockedUntil && r.lockedUntil < Date.now()) loginAttempts.delete(key);
+  }
+}
+
+router.post('/login', loginLimiter, (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
   const user = get('SELECT * FROM users WHERE username = ?', [username]);
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    recordLoginFailure(req.ip);
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
+  loginAttempts.delete(req.ip);
   const token = generateToken(user);
   res.json({ token, username: user.username });
 });

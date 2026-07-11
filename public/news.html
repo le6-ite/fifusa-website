@@ -66,13 +66,16 @@
   let currentPage = 1;
   let totalPages = 1;
 
+  const escHtml = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
   async function loadNews(page = 1) {
     const grid = document.getElementById('newsGrid');
     grid.innerHTML = '<div class="spinner-wrap" style="grid-column:1/-1"><div class="spinner"></div></div>';
     try {
       const data = await FIFUSA.apiFetch(`/api/news?page=${page}&limit=${LIMIT}`);
       const lang = FIFUSA.getCurrentLang();
-      totalPages = data.totalPages || 1;
+      totalPages = data.pages || 1; // API field is `pages`, not `totalPages`
       currentPage = page;
 
       if (!data.items || data.items.length === 0) {
@@ -85,13 +88,13 @@
       }
 
       grid.innerHTML = data.items.map(n => `
-        <a href="/article.html?slug=${n.slug}" class="card reveal">
+        <a href="/article.html?slug=${encodeURIComponent(n.slug)}" class="card reveal">
           ${n.preview_image
-            ? `<img src="${n.preview_image}" alt="${n['title_'+lang]||n.title_ru}" class="card-img">`
+            ? `<img src="${escHtml(n.preview_image)}" alt="${escHtml(n['title_'+lang]||n.title_ru)}" class="card-img">`
             : `<div class="card-img-placeholder">фото · из админ-панели</div>`}
           <div class="card-body">
             <div class="card-meta">${FIFUSA.formatDate(n.published_at)}</div>
-            <div class="card-title">${n['title_'+lang]||n.title_ru||'Новость'}</div>
+            <div class="card-title">${escHtml(n['title_'+lang]||n.title_ru||'Новость')}</div>
           </div>
         </a>
       `).join('');

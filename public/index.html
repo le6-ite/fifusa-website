@@ -205,6 +205,9 @@
   });
 
   // ── LATEST NEWS ────────────────────────────────────────────
+  const escHtml = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
   document.addEventListener('DOMContentLoaded', async () => {
     const list = document.getElementById('homeNewsList');
     try {
@@ -215,13 +218,13 @@
       }
       const lang = FIFUSA.getCurrentLang();
       list.innerHTML = data.items.map(n => `
-        <a href="/article.html?slug=${n.slug}" class="card news-hero-card reveal">
+        <a href="/article.html?slug=${encodeURIComponent(n.slug)}" class="card news-hero-card reveal">
           ${n.preview_image
-            ? `<img src="${n.preview_image}" alt="${n['title_'+lang]||n.title_ru}" class="card-img">`
+            ? `<img src="${escHtml(n.preview_image)}" alt="${escHtml(n['title_'+lang]||n.title_ru)}" class="card-img">`
             : `<div class="card-img-placeholder">фото · из админ-панели</div>`}
           <div class="card-body">
             <div class="card-meta">${FIFUSA.formatDate(n.published_at)}</div>
-            <div class="card-title">${n['title_'+lang]||n.title_ru||'Новость'}</div>
+            <div class="card-title">${escHtml(n['title_'+lang]||n.title_ru||'Новость')}</div>
           </div>
         </a>
       `).join('');

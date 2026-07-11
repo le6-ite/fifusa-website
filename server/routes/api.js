@@ -68,9 +68,19 @@ router.get('/partners', (req, res) => {
 
 // ─── CONTACT FORM ────────────────────────────────────────
 
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 router.post('/contact', async (req, res) => {
-  const { name, email, message } = req.body;
+  const name = (req.body.name || '').trim();
+  const email = (req.body.email || '').trim();
+  const message = (req.body.message || '').trim();
   if (!name || !email || !message) return res.status(400).json({ error: 'All fields are required' });
+  if (name.length > 200 || email.length > 320 || message.length > 5000) {
+    return res.status(400).json({ error: 'Message is too long' });
+  }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) return res.status(400).json({ error: 'Invalid email address' });
@@ -80,7 +90,7 @@ router.post('/contact', async (req, res) => {
 
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
-      const transporter = nodemailer.createTransporter({
+      const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT) || 587,
         secure: false,
@@ -90,7 +100,7 @@ router.post('/contact', async (req, res) => {
         from: `"FIFUSA Website" <${process.env.SMTP_USER}>`,
         to: process.env.CONTACT_EMAIL || process.env.SMTP_USER,
         subject: `New contact message from ${name}`,
-        html: `<h3>New message</h3><p><b>Name:</b> ${name}</p><p><b>Email:</b> ${email}</p><p><b>Message:</b><br>${message.replace(/\n/g, '<br>')}</p>`,
+        html: `<h3>New message</h3><p><b>Name:</b> ${escapeHtml(name)}</p><p><b>Email:</b> ${escapeHtml(email)}</p><p><b>Message:</b><br>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`,
       });
     } catch (e) {
       console.error('Email error:', e.message);
