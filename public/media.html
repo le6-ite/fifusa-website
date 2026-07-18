@@ -109,8 +109,8 @@
         } else {
           mediaHtml = `<div class="card-img-placeholder"><span class="card-badge">${badge}</span>медиа ивента</div>`;
         }
-      } else if (m.file_path) {
-        mediaHtml = `<div class="card-img-placeholder" style="padding:0;"><img src="${m.file_path}" alt="${title}" class="card-img"><span class="card-badge">${badge}</span></div>`;
+      } else if (m.cover_image) {
+        mediaHtml = `<div class="card-img-placeholder" style="padding:0;"><img src="${m.cover_image}" alt="${title}" class="card-img"><span class="card-badge">${badge}</span></div>`;
       } else {
         mediaHtml = `<div class="card-img-placeholder"><span class="card-badge">${badge}</span>медиа ивента · из админ-панели</div>`;
       }
