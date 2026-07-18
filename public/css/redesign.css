@@ -202,8 +202,10 @@ a { color: inherit; text-decoration: none; }
 /* ─── SECTIONS ─────────────────────────────────────────── */
 .section { max-width: var(--maxw); margin: 0 auto; padding: var(--gap-sec) 24px; }
 .section-alt { background: #fafafa; max-width: none; }
-.section-alt > .grid-2,
-.section-alt > .section-label { max-width: var(--maxw); margin-left: auto; margin-right: auto; }
+/* Full-bleed grey band, but keep every direct child inside the centered
+   column so text/chips align exactly with the rest of the page.
+   maxw − 48px matches the text column of normal .section (1200 − 2×24px pad). */
+.section-alt > * { max-width: calc(var(--maxw) - 48px); margin-left: auto; margin-right: auto; }
 
 .section-label {
   font-family: var(--font-display);
