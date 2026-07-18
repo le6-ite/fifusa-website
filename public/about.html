@@ -50,7 +50,6 @@
     <div class="reveal">
       <div class="section-label" data-i18n="about.goal_label">// НАША ЦЕЛЬ</div>
       <p class="section-text" data-i18n="about.goal_text">Мы верим в силу спорта как средства международного единства. Наша миссия — сохранить и развивать футзал, микрофутзал и бич-гейм, обеспечивая честные, доступные и увлекательные соревнования для всех.</p>
-      <p style="margin-top:20px;font:700 22px/1.3 var(--font-display);color:var(--ink);text-transform:uppercase;letter-spacing:-0.02em;" data-i18n="about.goal_slogan">ФИФУСА — за единый футзал, за спорт без границ.</p>
     </div>
   </div>
 </div>
@@ -59,7 +58,8 @@
 <div class="section section-alt">
   <div class="reveal">
     <div class="section-label" data-i18n="about.hist_label">// ИСТОРИЯ</div>
-    <p class="section-text" style="max-width:980px;" data-i18n="about.hist_text">С момента своего создания ФИФУСА прошла путь от латиноамериканской инициативы до многоуровневой международной федерации, представленной на всех континентах. После 2000 года часть стран вышла из ФИФУСА, образовав АМФ. Однако федерации Аргентины, Колумбии и Бразилии продолжают выступать под эгидой ФИФУСА.</p>
+    <p class="section-text" style="max-width:900px;" data-i18n="about.hist_text">С момента своего создания ФИФУСА прошла путь от латиноамериканской инициативы до многоуровневой международной федерации, представленной на всех континентах. После 2000 года часть стран вышла из ФИФУСА, образовав АМФ. Однако федерации Аргентины, Колумбии и Бразилии продолжают выступать под эгидой ФИФУСА.</p>
+    <p style="margin-top:32px;font:900 clamp(24px,3vw,40px)/1.05 var(--font-display);color:var(--ink);text-transform:uppercase;letter-spacing:-0.03em;max-width:900px;" data-i18n="about.goal_slogan">ФИФУСА — за единый футзал, за спорт без границ.</p>
   </div>
 </div>
 
@@ -162,7 +162,9 @@
     wrap.innerHTML = countries.map(c => `<span class="country-chip">${c}</span>`).join('');
   }
 
-  document.addEventListener('DOMContentLoaded', renderCountries);
+  // fifusa:ready fires once translations are loaded; DOMContentLoaded can
+  // race ahead of them, leaving the chips empty until a language switch.
+  document.addEventListener('fifusa:ready', renderCountries);
   document.addEventListener('fifusa:langchange', renderCountries);
 </script>
 </body>
