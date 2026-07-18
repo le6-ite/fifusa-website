@@ -80,6 +80,11 @@
     "p4_name": "Antonio Alberca García",
     "p4_country": "Spain"
   },
+  "coop": {
+    "place_2003": "Paraguay",
+    "place_2007": "Argentina",
+    "place_2011": "Colombia"
+  },
   "news": {
     "page_title": "NEWS",
     "page_note": "Federation news. Posts are published via the admin panel.",

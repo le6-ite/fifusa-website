@@ -80,6 +80,11 @@
     "p4_name": "Antonio Alberca García",
     "p4_country": "España"
   },
+  "coop": {
+    "place_2003": "Paraguay",
+    "place_2007": "Argentina",
+    "place_2011": "Colombia"
+  },
   "news": {
     "page_title": "NOTICIAS",
     "page_note": "Noticias de la federación. Las publicaciones se gestionan desde el panel de administración.",
