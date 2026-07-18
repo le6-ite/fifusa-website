@@ -70,6 +70,16 @@
       "🇵🇱 Poland", "🇧🇬 Bulgaria", "🇲🇨 Monaco", "🇮🇱 Israel"
     ]
   },
+  "presidents": {
+    "p1_name": "Luís Gonzaga de Oliveira",
+    "p1_country": "Brazil",
+    "p2_name": "Valdir Nogueira Cardoso",
+    "p2_country": "Brazil",
+    "p3_name": "Januário D'Alessio",
+    "p3_country": "Brazil",
+    "p4_name": "Antonio Alberca García",
+    "p4_country": "Spain"
+  },
   "news": {
     "page_title": "NEWS",
     "page_note": "Federation news. Posts are published via the admin panel.",
