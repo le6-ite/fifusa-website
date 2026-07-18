@@ -6,7 +6,7 @@
   <title>FIFUSA • UEFS — Международная Федерация Футзала и Микрофутзала</title>
   <meta name="description" content="ФИФУСА — международная организация футзала и микрофутзала. Основана в 1971 году в Сан-Паулу.">
   <link rel="icon" type="image/png" href="/images/fifusa_logo.png">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/home-redesign.css">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
 <nav class="navbar" id="navbar">
   <a href="/" class="navbar-brand">FIFUSA <span class="dot">•</span> UEFS</a>
   <div id="navMenu">
-    <a href="/" class="nav-link" data-i18n="nav.home">ГЛАВНАЯ</a>
+    <a href="/" class="nav-link active" data-i18n="nav.home">ГЛАВНАЯ</a>
     <a href="/about.html" class="nav-link" data-i18n="nav.about">О НАС</a>
     <a href="/documents.html" class="nav-link" data-i18n="nav.documents">РЕГЛАМЕНТ</a>
     <a href="/news.html" class="nav-link" data-i18n="nav.news">НОВОСТИ</a>
@@ -34,15 +34,21 @@
 
 <!-- ── HERO ───────────────────────────────────────────────── -->
 <section class="hero">
-  <div class="hero-overlay"></div>
-  <div class="hero-clip"></div>
-  <div class="hero-content" style="position:relative;z-index:1;">
+  <div class="hero-inner">
     <div class="hero-logos">
       <img src="/images/fifusa_logo.png" alt="FIFUSA">
       <img src="/images/uefs_logo.png" alt="UEFS">
     </div>
-    <h1 class="reveal"><span data-i18n="home.hero_t1">ФУТЗАЛ.</span> <span class="blue" data-i18n="home.hero_t2">МИКРОФУТЗАЛ.</span><br><span data-i18n="home.hero_t3">БИЧ-ГЕЙМ.</span></h1>
+    <h1 class="reveal">
+      <span data-i18n="home.hero_t1">ФУТЗАЛ.</span>
+      <span class="hl" data-i18n="home.hero_t2">МИКРОФУТЗАЛ.</span><br>
+      <span data-i18n="home.hero_t3">БИЧ-ГЕЙМ.</span>
+    </h1>
     <p class="hero-sub reveal" data-i18n="home.hero_sub">Международная федерация футзала и микрофутзала • ФИФУСА • Европейский союз футзала • УЕФС</p>
+    <div class="hero-cta reveal">
+      <a href="/about.html" class="btn btn-primary" data-i18n="nav.about">О НАС</a>
+      <a href="/news.html" class="btn btn-ghost" data-i18n="nav.news">НОВОСТИ</a>
+    </div>
   </div>
 </section>
 
@@ -51,7 +57,7 @@
   <div class="ticker-track" id="tickerTrack"></div>
 </div>
 
-<!-- ── MISSION (white section) ───────────────────────────── -->
+<!-- ── MISSION ────────────────────────────────────────────── -->
 <div class="mission-section" id="missionSection">
   <div>
     <h2 data-i18n="home.mission_title">НАША МИССИЯ</h2>
@@ -63,7 +69,7 @@
 </div>
 
 <!-- ── REF + HISTORY ──────────────────────────────────────── -->
-<div class="section" style="padding-bottom:60px;">
+<div class="section" style="padding-bottom:40px;">
   <div class="grid-2">
     <div class="reveal">
       <div class="section-label" data-i18n="home.ref_label">// СПРАВКА</div>
@@ -110,7 +116,7 @@
 </div>
 
 <!-- ── COOP + COMPETITIONS ────────────────────────────────── -->
-<div class="section section-alt section-angled">
+<div class="section section-alt">
   <div class="grid-2">
     <div class="reveal">
       <div class="section-label" data-i18n="home.coop_label">// МЕЖДУНАРОДНОЕ СОТРУДНИЧЕСТВО</div>
@@ -170,7 +176,7 @@
     const countries = FIFUSA.t('about.countries');
     if (!Array.isArray(countries) || !countries.length) return;
     // Strip leading emoji + space, keep country name only
-    const names = countries.map(c => c.replace(/^[\p{Emoji}\uFE0F\s]+/u, '').trim());
+    const names = countries.map(c => c.replace(/^[\p{Emoji}️\s]+/u, '').trim());
     // Double for seamless infinite loop
     track.innerHTML = [...names, ...names]
       .map(n => `<span class="ticker-item">${n} <span>/</span></span>`)
@@ -186,7 +192,7 @@
   // Re-render on every language switch
   document.addEventListener('fifusa:langchange', renderTicker);
 
-  // ── MISSION BALLS ──────────────────────────────────────────
+  // ── MISSION BALL ───────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     const missionSection = document.getElementById('missionSection');
     if (missionSection) {
@@ -218,7 +224,7 @@
       }
       const lang = FIFUSA.getCurrentLang();
       list.innerHTML = data.items.map(n => `
-        <a href="/article.html?slug=${encodeURIComponent(n.slug)}" class="card news-hero-card reveal">
+        <a href="/article.html?slug=${encodeURIComponent(n.slug)}" class="card reveal">
           ${n.preview_image
             ? `<img src="${escHtml(n.preview_image)}" alt="${escHtml(n['title_'+lang]||n.title_ru)}" class="card-img">`
             : `<div class="card-img-placeholder">фото · из админ-панели</div>`}
@@ -246,4 +252,3 @@
 </script>
 </body>
 </html>
-
